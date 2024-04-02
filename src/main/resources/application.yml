@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: codegen
+
+server:
+  port: 8023
