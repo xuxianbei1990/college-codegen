@@ -209,7 +209,7 @@ public class CodegenEngine {
         globalBindingMap.put("ExcelUtilsClassName", ExcelUtils.class.getName());
         globalBindingMap.put("LocalDateTimeUtilsClassName", LocalDateTimeUtils.class.getName());
         globalBindingMap.put("ObjectUtilsClassName", ObjectUtils.class.getName());
-        globalBindingMap.put("DictConvertClassName", DictConvert.class.getName());
+//        globalBindingMap.put("DictConvertClassName", DictConvert.class.getName());
 //        globalBindingMap.put("OperateLogClassName", OperateLog.class.getName());
 //        globalBindingMap.put("OperateTypeEnumClassName", OperateTypeEnum.class.getName());
         globalBindingMap.put("BeanUtils", BeanUtils.class.getName());

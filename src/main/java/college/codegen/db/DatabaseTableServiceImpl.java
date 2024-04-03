@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
 import college.codegen.dal.dataobject.DataSourceConfigDO;
+import com.alibaba.druid.pool.DruidDataSource;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 public class DatabaseTableServiceImpl implements DatabaseTableService {
 
     @Resource
-    private DataSourceConfigService dataSourceConfigService;
+    private DruidDataSource dataSource;
 
     @Override
     public List<TableInfo> getTableList(Long dataSourceConfigId, String nameLike, String commentLike) {
@@ -43,13 +44,10 @@ public class DatabaseTableServiceImpl implements DatabaseTableService {
     }
 
     private List<TableInfo> getTableList0(Long dataSourceConfigId, String name) {
-        // 获得数据源配置
-        DataSourceConfigDO config = dataSourceConfigService.getDataSourceConfig(dataSourceConfigId);
-        Assert.notNull(config, "数据源({}) 不存在！", dataSourceConfigId);
 
         // 使用 MyBatis Plus Generator 解析表结构
-        DataSourceConfig dataSourceConfig = new DataSourceConfig.Builder(config.getUrl(), config.getUsername(),
-                config.getPassword()).build();
+        DataSourceConfig dataSourceConfig = new DataSourceConfig.Builder(dataSource.getUrl(), dataSource.getUsername(),
+                dataSource.getPassword()).build();
         StrategyConfig.Builder strategyConfig = new StrategyConfig.Builder();
         if (StrUtil.isNotEmpty(name)) {
             strategyConfig.addInclude(name);
