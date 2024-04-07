@@ -3,14 +3,14 @@ package college.codegen.service.inner;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
-
-import college.codegen.dal.dataobject.BaseDO;
-import college.codegen.dal.dataobject.CodegenColumnDO;
-import college.codegen.dal.dataobject.CodegenTableDO;
+import college.codegen.dao.entity.BaseDO;
+import college.codegen.dao.entity.CodegenColumnDO;
+import college.codegen.dao.entity.CodegenTableDO;
 import college.codegen.enums.CodegenColumnHtmlTypeEnum;
 import college.codegen.enums.CodegenColumnListConditionEnum;
 import college.codegen.enums.CodegenTemplateTypeEnum;
-import college.codegen.object.BeanUtils;
+import college.codegen.util.BeanUtils;
+import college.codegen.util.CodegenConvert;
 import com.baomidou.mybatisplus.generator.config.po.TableField;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.google.common.collect.Sets;
@@ -98,7 +98,9 @@ public class CodegenBuilder {
     }
 
     public CodegenTableDO buildTable(TableInfo tableInfo) {
-        CodegenTableDO table = BeanUtils.toBean(tableInfo, CodegenTableDO.class);
+        CodegenTableDO table = new CodegenTableDO();
+        table.setTableName(tableInfo.getName());
+        table.setTableComment(tableInfo.getComment());
         initTableDefault(table);
         return table;
     }
@@ -124,7 +126,7 @@ public class CodegenBuilder {
     }
 
     public List<CodegenColumnDO> buildColumns(Long tableId, List<TableField> tableFields) {
-        List<CodegenColumnDO> columns = BeanUtils.toBean(tableFields, CodegenColumnDO.class);
+        List<CodegenColumnDO> columns = CodegenConvert.INSTANCE.convertList(tableFields);
         int index = 1;
         for (CodegenColumnDO column : columns) {
             column.setTableId(tableId);

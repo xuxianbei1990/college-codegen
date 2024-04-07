@@ -1,6 +1,7 @@
 package college.codegen.config;
 
 
+import college.codegen.enums.CodegenFrontTypeEnum;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -9,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.Collection;
 
-@ConfigurationProperties(prefix = "yudao.codegen")
+@ConfigurationProperties(prefix = "college.codegen")
 @Validated
 @Data
 public class CodegenProperties {

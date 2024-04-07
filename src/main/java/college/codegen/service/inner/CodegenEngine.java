@@ -10,24 +10,23 @@ import cn.hutool.extra.template.engine.velocity.VelocityEngine;
 import cn.hutool.system.SystemUtil;
 
 import college.codegen.annotation.DictFormat;
+import college.codegen.annotation.OperateLog;
 import college.codegen.config.CodegenProperties;
-import college.codegen.conver.DictConvert;
-import college.codegen.dal.dataobject.BaseDO;
-import college.codegen.dal.dataobject.CodegenColumnDO;
-import college.codegen.dal.dataobject.CodegenTableDO;
+
+import college.codegen.dao.entity.BaseDO;
+import college.codegen.dao.entity.CodegenColumnDO;
+import college.codegen.dao.entity.CodegenTableDO;
 import college.codegen.enums.CodegenFrontTypeEnum;
 import college.codegen.enums.CodegenSceneEnum;
 import college.codegen.enums.CodegenTemplateTypeEnum;
-import college.codegen.exception.enums.ServiceExceptionUtil;
-import college.codegen.object.BeanUtils;
-import college.codegen.object.ObjectUtils;
-import college.codegen.pojo.CommonResult;
-import college.codegen.pojo.PageParam;
-import college.codegen.pojo.PageResult;
-import college.codegen.util.CollectionUtils;
-import college.codegen.util.ExcelUtils;
-import college.codegen.util.LocalDateTimeUtils;
-import college.codegen.util.StrUtils;
+
+import college.codegen.enums.OperateTypeEnum;
+import college.codegen.exception.ServiceExceptionUtil;
+import college.codegen.util.*;
+
+import college.codegen.vo.CommonResult;
+import college.codegen.vo.PageParam;
+import college.codegen.vo.PageResult;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -210,8 +209,8 @@ public class CodegenEngine {
         globalBindingMap.put("LocalDateTimeUtilsClassName", LocalDateTimeUtils.class.getName());
         globalBindingMap.put("ObjectUtilsClassName", ObjectUtils.class.getName());
 //        globalBindingMap.put("DictConvertClassName", DictConvert.class.getName());
-//        globalBindingMap.put("OperateLogClassName", OperateLog.class.getName());
-//        globalBindingMap.put("OperateTypeEnumClassName", OperateTypeEnum.class.getName());
+        globalBindingMap.put("OperateLogClassName", OperateLog.class.getName());
+        globalBindingMap.put("OperateTypeEnumClassName", OperateTypeEnum.class.getName());
         globalBindingMap.put("BeanUtils", BeanUtils.class.getName());
     }
 
@@ -465,8 +464,8 @@ public class CodegenEngine {
     }
 
     private static String javaModuleFilePath(String path, String module, String src) {
-        return "yudao-module-${table.moduleName}/" + // 顶级模块
-                "yudao-module-${table.moduleName}-" + module + "/" + // 子模块
+        return "college-module-${table.moduleName}/" + // 顶级模块
+                "college-module-${table.moduleName}-" + module + "/" + // 子模块
                 "src/" + src + "/java/${basePackage}/module/${table.moduleName}/" + path + ".java";
     }
 

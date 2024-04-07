@@ -1,6 +1,32 @@
 spring:
   application:
     name: codegen
+  datasource:
+    druid:
+      url: jdbc:mysql://127.0.0.1:3306/test_codegen?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      username:
+      password:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      testWhileIdle: true
+      validationQuery: select 1
+      testOnBorrow: true
+      validationInterval: 1000
+      timeBetweenEvictionRunsMillis: 3600000
+      minEvictableIdleTimeMillis: 18000000
+      min-idle: 10
+      initial-size: 10
+      max-active: 10
+      testOnConnect: true
+      initSQL: select 1
+
+college:
+  codegen:
+    mapper-base-package: college.codegen.dao.mapper
+    base-package: college
+    db-schemas: college
+    # 前端模版的类型，参见 CodegenFrontTypeEnum 枚举类
+    front-type: 10
+
 
 server:
-  port: 8023
+  port: 8000

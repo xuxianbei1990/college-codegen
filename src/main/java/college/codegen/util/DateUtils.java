@@ -1,6 +1,5 @@
 package college.codegen.util;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 
 import java.time.*;
 import java.util.Calendar;
@@ -167,24 +166,5 @@ public class DateUtils {
         return c.getTime();
     }
 
-    /**
-     * 是否今天
-     *
-     * @param date 日期
-     * @return 是否
-     */
-    public static boolean isToday(LocalDateTime date) {
-        return LocalDateTimeUtil.isSameDay(date, LocalDateTime.now());
-    }
-
-    /**
-     * 是否昨天
-     *
-     * @param date 日期
-     * @return 是否
-     */
-    public static boolean isYesterday(LocalDateTime date) {
-        return LocalDateTimeUtil.isSameDay(date, LocalDateTime.now().minusDays(1));
-    }
 
 }
