@@ -2,6 +2,7 @@ package college.codegen.service;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import college.codegen.config.GenerateDataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.GlobalConfig;
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.generator.config.builder.ConfigBuilder;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -25,8 +27,8 @@ import java.util.stream.Collectors;
 @Service
 public class DatabaseTableServiceImpl {
 
-    @Resource
-    private DruidDataSource dataSource;
+    @Autowired
+    private GenerateDataSource dataSource;
 
     public List<TableInfo> getTableList(Long dataSourceConfigId, String nameLike, String commentLike) {
         List<TableInfo> tables = getTableList0(dataSourceConfigId, null);

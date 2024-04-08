@@ -12,21 +12,19 @@ import college.codegen.enums.CodegenTemplateTypeEnum;
 import college.codegen.service.inner.CodegenBuilder;
 import college.codegen.service.inner.CodegenEngine;
 import college.codegen.util.BeanUtils;
-import college.codegen.vo.CodegenCreateListReqVO;
-import college.codegen.vo.CodegenTablePageReqVO;
-import college.codegen.vo.DatabaseTableRespVO;
-import college.codegen.vo.PageResult;
+import college.codegen.vo.*;
+import com.baomidou.mybatisplus.generator.config.po.TableField;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 import static college.codegen.exception.ErrorCodeConstants.*;
+import static college.codegen.util.CollectionUtils.convertMap;
 import static college.codegen.util.CollectionUtils.convertSet;
 import static college.codegen.exception.ServiceExceptionUtil.exception;
 
@@ -165,5 +163,84 @@ public class CodegenServiceImpl {
 
         // 执行生成
         return codegenEngine.execute(table, columns, subTables, subColumnsList);
+    }
+
+    public void updateCodegen(CodegenUpdateReqVO updateReqVO) {
+        // 校验是否已经存在
+        if (codegenTableMapper.selectById(updateReqVO.getTable().getId()) == null) {
+            throw exception(CODEGEN_TABLE_NOT_EXISTS);
+        }
+        // 校验主表字段存在
+        if (Objects.equals(updateReqVO.getTable().getTemplateType(), CodegenTemplateTypeEnum.SUB.getType())) {
+            if (codegenTableMapper.selectById(updateReqVO.getTable().getMasterTableId()) == null) {
+                throw exception(CODEGEN_MASTER_TABLE_NOT_EXISTS, updateReqVO.getTable().getMasterTableId());
+            }
+            if (CollUtil.findOne(updateReqVO.getColumns(),  // 关联主表的字段不存在
+                    column -> column.getId().equals(updateReqVO.getTable().getSubJoinColumnId())) == null) {
+                throw exception(CODEGEN_SUB_COLUMN_NOT_EXISTS, updateReqVO.getTable().getSubJoinColumnId());
+            }
+        }
+
+        // 更新 table 表定义
+        CodegenTableDO updateTableObj = BeanUtils.toBean(updateReqVO.getTable(), CodegenTableDO.class);
+        codegenTableMapper.updateById(updateTableObj);
+        // 更新 column 字段定义
+        List<CodegenColumnDO> updateColumnObjs = BeanUtils.toBean(updateReqVO.getColumns(), CodegenColumnDO.class);
+        updateColumnObjs.forEach(updateColumnObj -> codegenColumnMapper.updateById(updateColumnObj));
+    }
+
+    public void syncCodegenFromDB(Long tableId) {
+        // 校验是否已经存在
+        CodegenTableDO table = codegenTableMapper.selectById(tableId);
+        if (table == null) {
+            throw exception(CODEGEN_TABLE_NOT_EXISTS);
+        }
+        // 从数据库中，获得数据库表结构
+        TableInfo tableInfo = databaseTableService.getTable(table.getDataSourceConfigId(), table.getTableName());
+        // 执行同步
+        syncCodegen0(tableId, tableInfo);
+    }
+
+    private void syncCodegen0(Long tableId, TableInfo tableInfo) {
+        // 1. 校验导入的表和字段非空
+        validateTableInfo(tableInfo);
+        List<TableField> tableFields = tableInfo.getFields();
+
+        // 2. 构建 CodegenColumnDO 数组，只同步新增的字段
+        List<CodegenColumnDO> codegenColumns = codegenColumnMapper.selectListByTableId(tableId);
+        Set<String> codegenColumnNames = convertSet(codegenColumns, CodegenColumnDO::getColumnName);
+
+        // 3.1 计算需要【修改】的字段，插入时重新插入，删除时将原来的删除
+        Map<String, CodegenColumnDO> codegenColumnDOMap = convertMap(codegenColumns, CodegenColumnDO::getColumnName);
+        BiPredicate<TableField, CodegenColumnDO> primaryKeyPredicate =
+                (tableField, codegenColumn) -> tableField.getMetaInfo().getJdbcType().name().equals(codegenColumn.getDataType())
+                        && tableField.getMetaInfo().isNullable() == codegenColumn.getNullable()
+                        && tableField.isKeyFlag() == codegenColumn.getPrimaryKey()
+                        && tableField.getComment().equals(codegenColumn.getColumnComment());
+        Set<String> modifyFieldNames = tableFields.stream()
+                .filter(tableField -> codegenColumnDOMap.get(tableField.getColumnName()) != null
+                        && !primaryKeyPredicate.test(tableField, codegenColumnDOMap.get(tableField.getColumnName())))
+                .map(TableField::getColumnName)
+                .collect(Collectors.toSet());
+        // 3.2 计算需要【删除】的字段
+        Set<String> tableFieldNames = convertSet(tableFields, TableField::getName);
+        Set<Long> deleteColumnIds = codegenColumns.stream()
+                .filter(column -> (!tableFieldNames.contains(column.getColumnName())) || modifyFieldNames.contains(column.getColumnName()))
+                .map(CodegenColumnDO::getId).collect(Collectors.toSet());
+        // 移除已经存在的字段
+        tableFields.removeIf(column -> codegenColumnNames.contains(column.getColumnName()) && (!modifyFieldNames.contains(column.getColumnName())));
+        if (CollUtil.isEmpty(tableFields) && CollUtil.isEmpty(deleteColumnIds)) {
+            throw exception(CODEGEN_SYNC_NONE_CHANGE);
+        }
+
+        // 4.1 插入新增的字段
+        List<CodegenColumnDO> columns = codegenBuilder.buildColumns(tableId, tableFields);
+        for (CodegenColumnDO column : columns) {
+            codegenColumnMapper.insert(column);
+        }
+        // 4.2 删除不存在的字段
+        if (CollUtil.isNotEmpty(deleteColumnIds)) {
+            codegenColumnMapper.deleteBatchIds(deleteColumnIds);
+        }
     }
 }

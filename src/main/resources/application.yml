@@ -4,8 +4,8 @@ spring:
   datasource:
     druid:
       url: jdbc:mysql://127.0.0.1:3306/test_codegen?useUnicode=true&characterEncoding=utf-8&useSSL=false
-      username:
-      password:
+      username: 1
+      password: 1
       driver-class-name: com.mysql.cj.jdbc.Driver
       testWhileIdle: true
       validationQuery: select 1
@@ -26,6 +26,11 @@ college:
     db-schemas: college
     # 前端模版的类型，参见 CodegenFrontTypeEnum 枚举类
     front-type: 10
+  generate:
+    url: jdbc:mysql://129.211.3.200:3306/test_codegen?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: pinyiche8888
+
 
 
 server:

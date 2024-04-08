@@ -3,6 +3,7 @@ package college.codegen.util;
 
 import college.codegen.dao.entity.CodegenColumnDO;
 import college.codegen.dao.entity.CodegenTableDO;
+import college.codegen.vo.CodegenPreviewRespVO;
 import com.baomidou.mybatisplus.generator.config.po.TableField;
 import com.baomidou.mybatisplus.generator.config.po.TableInfo;
 import org.apache.ibatis.type.JdbcType;
@@ -47,5 +48,14 @@ public interface CodegenConvert {
         return jdbcType.name();
     }
 
+    default List<CodegenPreviewRespVO> convert(Map<String, String> codes) {
+        return CollectionUtils.convertList(codes.entrySet(),
+                entry -> {
+                    CodegenPreviewRespVO vo = new CodegenPreviewRespVO();
+                    vo.setFilePath(entry.getKey());
+                    vo.setCode(entry.getValue());
+                    return vo;
+                });
+    }
 
 }

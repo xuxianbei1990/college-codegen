@@ -5,6 +5,7 @@ import cn.hutool.core.util.ZipUtil;
 import college.codegen.dao.entity.CodegenTableDO;
 import college.codegen.service.CodegenServiceImpl;
 import college.codegen.util.BeanUtils;
+import college.codegen.util.CodegenConvert;
 import college.codegen.util.ServletUtils;
 import college.codegen.vo.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -77,6 +78,30 @@ public class CodegenController {
         ZipUtil.zip(outputStream, paths, ins);
         // 输出
         ServletUtils.writeAttachment(response, "codegen.zip", outputStream.toByteArray());
+    }
+
+
+    @Operation(summary = "预览生成代码")
+    @GetMapping("/preview")
+    @Parameter(name = "tableId", description = "表编号", required = true, example = "1024")
+    public CommonResult<List<CodegenPreviewRespVO>> previewCodegen(@RequestParam("tableId") Long tableId) {
+        Map<String, String> codes = codegenService.generationCodes(tableId);
+        return success(CodegenConvert.INSTANCE.convert(codes));
+    }
+
+    @Operation(summary = "更新数据库的表和字段定义")
+    @PutMapping("/update")
+    public CommonResult<Boolean> updateCodegen(@Valid @RequestBody CodegenUpdateReqVO updateReqVO) {
+        codegenService.updateCodegen(updateReqVO);
+        return success(true);
+    }
+
+    @Operation(summary = "基于数据库的表结构，同步数据库的表和字段定义")
+    @PutMapping("/sync-from-db")
+    @Parameter(name = "tableId", description = "表编号", required = true, example = "1024")
+    public CommonResult<Boolean> syncCodegenFromDB(@RequestParam("tableId") Long tableId) {
+        codegenService.syncCodegenFromDB(tableId);
+        return success(true);
     }
 
 }
