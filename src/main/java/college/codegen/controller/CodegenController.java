@@ -33,7 +33,6 @@ import static college.codegen.vo.CommonResult.success;
 @RestController
 @RequestMapping("/codegen")
 public class CodegenController {
-
     @Resource
     private CodegenServiceImpl codegenService;
 
